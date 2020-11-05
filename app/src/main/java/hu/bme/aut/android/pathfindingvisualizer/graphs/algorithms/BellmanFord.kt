@@ -1,10 +1,9 @@
-package hu.bme.aut.android.pathfindingvisualizer.model.graphs.algorithms
+package hu.bme.aut.android.pathfindingvisualizer.graphs.algorithms
 
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.Node
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.utils.NumberAdapter
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.WeightedEdge
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.WeightedGraph
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.utils.*
+import hu.bme.aut.android.pathfindingvisualizer.graphs.Node
+import hu.bme.aut.android.pathfindingvisualizer.graphs.WeightedEdge
+import hu.bme.aut.android.pathfindingvisualizer.graphs.WeightedGraph
+import hu.bme.aut.android.pathfindingvisualizer.graphs.utils.*
 import kotlin.collections.set
 
 
@@ -41,24 +40,31 @@ fun <T, N : Number> bellmanFord(
     return previousNodeMapping
 }
 
-fun <T, N : Number> bellmanFordShortestTree(
+fun <T, N : Number> bellmanFordShortestPathOrNull(
     graph: WeightedGraph<T, N>,
     startNode: Node<T>,
-    numberAdapter: NumberAdapter<N>
-): WeightedGraph<T, N> {
+    endNode: Node<T>,
+    numberAdapter: NumberAdapter<N>,
+    onNodeVisited: (Node<T>) -> Unit = {}
+): WeightedGraph<T, N>? {
     val previousNodeMapping = bellmanFord(graph, startNode, numberAdapter)
-    return buildTreeFromPreviousNodeMapping(startNode, previousNodeMapping)
+    previousNodeMapping.keys.forEach {
+        onNodeVisited(it)
+    }
+    return if (previousNodeMapping.containsKey(endNode))
+        buildPathFromPreviousNodeMapping(endNode, previousNodeMapping)
+    else null
 }
 
 
-fun <T, N : Number> bellmanFordShortestDistances(
-    graph: WeightedGraph<T, N>,
-    startNode: Node<T>,
-    numberAdapter: NumberAdapter<N>
-): Map<Node<T>, N> {
-    val previousNodeMapping = bellmanFord(graph, startNode, numberAdapter)
-    return buildDistanceMappingFromPreviousNodeMapping(graph, startNode, previousNodeMapping, numberAdapter)
-}
+//fun <T, N : Number> bellmanFordShortestDistances(
+//    graph: WeightedGraph<T, N>,
+//    startNode: Node<T>,
+//    numberAdapter: NumberAdapter<N>
+//): Map<Node<T>, N> {
+//    val previousNodeMapping = bellmanFord(graph, startNode, numberAdapter)
+//    return buildDistanceMappingFromPreviousNodeMapping(graph, startNode, previousNodeMapping, numberAdapter)
+//}
 
 private fun <T, N : Number> List<WeightedEdge<T, N>>.forEachEdgeIfBetterPathFound(
     distances: MutableMap<Node<T>, N>,

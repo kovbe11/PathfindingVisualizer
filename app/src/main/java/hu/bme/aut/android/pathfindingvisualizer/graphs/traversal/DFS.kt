@@ -1,11 +1,11 @@
-package hu.bme.aut.android.pathfindingvisualizer.model.graphs.traversal
+package hu.bme.aut.android.pathfindingvisualizer.graphs.traversal
 
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.Edge
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.Graph
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.Node
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.utils.buildTreeFromPreviousNodeMapping
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.utils.get
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.utils.isUndirected
+import hu.bme.aut.android.pathfindingvisualizer.graphs.Edge
+import hu.bme.aut.android.pathfindingvisualizer.graphs.Graph
+import hu.bme.aut.android.pathfindingvisualizer.graphs.Node
+import hu.bme.aut.android.pathfindingvisualizer.graphs.utils.buildTreeFromPreviousNodeMapping
+import hu.bme.aut.android.pathfindingvisualizer.graphs.utils.get
+import hu.bme.aut.android.pathfindingvisualizer.graphs.utils.isUndirected
 
 
 class DFSHelper<T>(

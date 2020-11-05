@@ -1,13 +1,6 @@
-package hu.bme.aut.android.pathfindingvisualizer.model.graphs
+package hu.bme.aut.android.pathfindingvisualizer.graphs
 
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.utils.nodes
-import kotlin.collections.HashMap
-import kotlin.collections.HashSet
-import kotlin.collections.Map
-import kotlin.collections.MutableMap
-import kotlin.collections.MutableSet
-import kotlin.collections.Set
-import kotlin.collections.forEach
+import hu.bme.aut.android.pathfindingvisualizer.graphs.utils.nodes
 import kotlin.collections.set
 
 interface Graph<T> {

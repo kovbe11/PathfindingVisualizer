@@ -1,4 +1,4 @@
-package hu.bme.aut.android.pathfindingvisualizer.model.graphs
+package hu.bme.aut.android.pathfindingvisualizer.graphs
 
 /**
  * A wrapper that acts as a Node of a graph

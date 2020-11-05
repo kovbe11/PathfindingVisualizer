@@ -1,9 +1,9 @@
-package hu.bme.aut.android.pathfindingvisualizer.model.graphs.utils
+package hu.bme.aut.android.pathfindingvisualizer.graphs.utils
 
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.MutableNode
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.Node
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.SimpleMutableNode
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.SimpleNode
+import hu.bme.aut.android.pathfindingvisualizer.graphs.MutableNode
+import hu.bme.aut.android.pathfindingvisualizer.graphs.Node
+import hu.bme.aut.android.pathfindingvisualizer.graphs.SimpleMutableNode
+import hu.bme.aut.android.pathfindingvisualizer.graphs.SimpleNode
 
 val <T> MutableNode<T>.immutable: Node<T>
     get() {

@@ -1,8 +1,8 @@
-package hu.bme.aut.android.pathfindingvisualizer.model.graphs.utils
+package hu.bme.aut.android.pathfindingvisualizer.graphs.utils
 
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.*
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.traversal.dfsDirectedDetectCycleFrom
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.traversal.dfsUndirectedDetectCycleFrom
+import hu.bme.aut.android.pathfindingvisualizer.graphs.*
+import hu.bme.aut.android.pathfindingvisualizer.graphs.traversal.dfsDirectedDetectCycleFrom
+import hu.bme.aut.android.pathfindingvisualizer.graphs.traversal.dfsUndirectedDetectCycleFrom
 
 val <T> MutableGraph<T>.immutable: Graph<T>
     get() {

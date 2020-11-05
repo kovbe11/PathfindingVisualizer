@@ -1,13 +1,13 @@
-package hu.bme.aut.android.pathfindingvisualizer.model.graphs.algorithms
+package hu.bme.aut.android.pathfindingvisualizer.graphs.algorithms
 
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.Node
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.utils.NumberAdapter
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.WeightedEdge
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.WeightedGraph
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.utils.buildPathFromPreviousNodeMapping
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.utils.get
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.utils.nodes
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.utils.sumEdgeWeights
+import android.util.Log
+import hu.bme.aut.android.pathfindingvisualizer.graphs.Node
+import hu.bme.aut.android.pathfindingvisualizer.graphs.WeightedEdge
+import hu.bme.aut.android.pathfindingvisualizer.graphs.WeightedGraph
+import hu.bme.aut.android.pathfindingvisualizer.graphs.utils.NumberAdapter
+import hu.bme.aut.android.pathfindingvisualizer.graphs.utils.buildPathFromPreviousNodeMapping
+import hu.bme.aut.android.pathfindingvisualizer.graphs.utils.get
+import hu.bme.aut.android.pathfindingvisualizer.graphs.utils.nodes
 import java.util.*
 import kotlin.Comparator
 import kotlin.collections.HashMap
@@ -18,9 +18,11 @@ inline fun <T, N : Number> aStar(
     startNode: Node<T>,
     endNode: Node<T>?,
     crossinline heuristicFn: (Node<T>) -> Double,
-    numberAdapter: NumberAdapter<N>
+    numberAdapter: NumberAdapter<N>,
+    onNodeVisited: (Node<T>) -> Unit = {}
 ): Map<Node<T>, WeightedEdge<T, N>> {
     check(graph.adjacencyList.none { it.value.any { edge -> numberAdapter.toDouble(edge.weight) < 0 } })
+    Log.println(Log.INFO, "algo", "${graph[startNode]}\n $endNode, ${graph[endNode!!]} ")
     check(graph[startNode] != null && (endNode == null || graph[endNode] != null))
 
     val distances: MutableMap<Node<T>, N> = HashMap()
@@ -45,6 +47,7 @@ inline fun <T, N : Number> aStar(
     //maximum of |V| times we do this
     while (pqNodes.isNotEmpty()) {
         val current = pqNodes.remove()
+        onNodeVisited(current)
 
         if (endNode != null && current == endNode) {
             break
@@ -90,43 +93,18 @@ inline fun <T, N : Number> aStarShortestPathOrNull(
     startNode: Node<T>,
     endNode: Node<T>,
     crossinline heuristicFn: (Node<T>) -> Double,
-    numberAdapter: NumberAdapter<N>
+    numberAdapter: NumberAdapter<N>,
+    onNodeVisited: (Node<T>) -> Unit = {}
 ): WeightedGraph<T, N>? {
     val previousNodeMapping = aStar(
         graph,
         startNode,
         endNode,
         heuristicFn,
-        numberAdapter
+        numberAdapter,
+        onNodeVisited
     )
     return if (previousNodeMapping.containsKey(endNode))
         buildPathFromPreviousNodeMapping(endNode, previousNodeMapping)
     else null
-}
-
-inline fun <T, N : Number> aStarShortestPath(
-    graph: WeightedGraph<T, N>,
-    startNode: Node<T>,
-    endNode: Node<T>,
-    crossinline heuristicFn: (Node<T>) -> Double,
-    numberAdapter: NumberAdapter<N>
-): WeightedGraph<T, N> {
-    return aStarShortestPathOrNull(graph, startNode, endNode, heuristicFn, numberAdapter)
-        ?: error("$endNode unreachable")
-}
-
-fun <T, N : Number> aStarShortestPathLength(
-    graph: WeightedGraph<T, N>,
-    startNode: Node<T>,
-    endNode: Node<T>,
-    heuristicFn: (Node<T>) -> Double,
-    numberAdapter: NumberAdapter<N>
-): N {
-    return aStarShortestPath(
-        graph,
-        startNode,
-        endNode,
-        heuristicFn,
-        numberAdapter
-    ).sumEdgeWeights(numberAdapter)
 }

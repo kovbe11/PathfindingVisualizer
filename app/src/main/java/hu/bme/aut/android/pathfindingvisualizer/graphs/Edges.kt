@@ -1,4 +1,4 @@
-package hu.bme.aut.android.pathfindingvisualizer.model.graphs
+package hu.bme.aut.android.pathfindingvisualizer.graphs
 
 /**
  * An interface that defines an edge

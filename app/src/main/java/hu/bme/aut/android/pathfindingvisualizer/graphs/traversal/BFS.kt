@@ -1,11 +1,11 @@
-package hu.bme.aut.android.pathfindingvisualizer.model.graphs.traversal
+package hu.bme.aut.android.pathfindingvisualizer.graphs.traversal
 
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.Edge
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.Graph
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.Node
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.utils.buildPathFromPreviousNodeMapping
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.utils.buildTreeFromPreviousNodeMapping
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.utils.get
+import hu.bme.aut.android.pathfindingvisualizer.graphs.Edge
+import hu.bme.aut.android.pathfindingvisualizer.graphs.Graph
+import hu.bme.aut.android.pathfindingvisualizer.graphs.Node
+import hu.bme.aut.android.pathfindingvisualizer.graphs.utils.buildPathFromPreviousNodeMapping
+import hu.bme.aut.android.pathfindingvisualizer.graphs.utils.buildTreeFromPreviousNodeMapping
+import hu.bme.aut.android.pathfindingvisualizer.graphs.utils.get
 
 
 private fun <T> bfsHelper(
@@ -79,7 +79,7 @@ fun <T> Graph<T>.traverseBFS(startNode: Node<T>, function: (Node<T>) -> Unit) {
 fun <T> Graph<T>.traverseBFSIndexed(startNode: Node<T>, function: (Node<T>, Int) -> Unit) {
     val visited: MutableMap<Node<T>, Int> = HashMap()
     bfsHelper(this, startNode, visited)
-    for (i in 0..visited.values.max()!!) {
+    for (i in 0..visited.values.maxOrNull()!!) {
         for (entry in visited.filterValues { it == i }) {
             function(entry.key, i)
         }

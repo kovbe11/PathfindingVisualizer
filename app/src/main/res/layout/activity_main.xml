@@ -25,7 +25,7 @@
                 android:layout_height="match_parent"
                 android:onClick="onSettingsClicked"
                 android:layout_weight="1"
-                android:drawableTop="@drawable/ic_settings_gear"
+                android:drawableTop="@drawable/ic_play_button"
                 />
 
             <ToggleButton

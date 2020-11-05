@@ -98,7 +98,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onSettingsClicked(view: View) {
-        //itt akarom felhozni a settings menut
+        canvas.showAlgo()
     }
 
     fun insertCell(cell: Cell) {

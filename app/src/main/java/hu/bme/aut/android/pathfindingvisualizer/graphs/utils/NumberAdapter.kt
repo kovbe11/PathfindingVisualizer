@@ -1,4 +1,4 @@
-package hu.bme.aut.android.pathfindingvisualizer.model.graphs.utils
+package hu.bme.aut.android.pathfindingvisualizer.graphs.utils
 
 
 //using this interface let's the hypothetic user of the "library"
@@ -19,4 +19,5 @@ object DoubleAdapter :
     override val toN: (Double) -> Double = { it }
     override val toDouble: (Double) -> Double = { it }
 }
+
 

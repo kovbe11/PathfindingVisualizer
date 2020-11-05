@@ -1,6 +1,6 @@
-package hu.bme.aut.android.pathfindingvisualizer.model.graphs.utils
+package hu.bme.aut.android.pathfindingvisualizer.graphs.utils
 
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.*
+import hu.bme.aut.android.pathfindingvisualizer.graphs.*
 
 val <T> Pair<T, T>.mutableEdge: MutableEdge<T>
     get() {

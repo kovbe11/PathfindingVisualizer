@@ -1,6 +1,6 @@
-package hu.bme.aut.android.pathfindingvisualizer.model.graphs.utils
+package hu.bme.aut.android.pathfindingvisualizer.graphs.utils
 
-import hu.bme.aut.android.pathfindingvisualizer.model.graphs.*
+import hu.bme.aut.android.pathfindingvisualizer.graphs.*
 
 class GraphBuilder<T> {
 
@@ -58,6 +58,7 @@ fun <T, N : Number> weightedGraph(op: WeightedGraphBuilder<T, N>.() -> Unit): We
 fun <T, N : Number> mutableWeightedGraph(op: WeightedGraphBuilder<T, N>.() -> Unit): SimpleMutableWeightedGraph<T, N> {
     return WeightedGraphBuilder<T, N>().apply(op).graph
 }
+
 
 fun <T, N : Number> WeightedGraphBuilder<T, N>.node(value: T) {
     graph.addNode(value.mutableNode)
