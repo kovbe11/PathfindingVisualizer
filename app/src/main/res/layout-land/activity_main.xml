@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal">
+
+
+    <hu.bme.aut.android.pathfindingvisualizer.view.GridView
+        android:id="@+id/canvas"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="2"
+        android:background="@color/backgroundColor" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="@color/toolbarColor">
+
+
+
+            <ToggleButton
+                android:id="@+id/wall_button"
+                android:layout_width="56dp"
+                android:layout_height="50dp"
+                android:layout_weight="1.1"
+                android:drawableTop="@drawable/ic_wall"
+                android:gravity="center"
+                android:onClick="onCursorTypeClicked"
+                android:textOff=""
+                android:textOn=""
+                android:textSize="0sp" />
+
+            <ToggleButton
+                android:id="@+id/weight_button"
+                android:layout_width="56dp"
+                android:layout_height="50dp"
+                android:layout_weight="1.1"
+                android:drawableTop="@drawable/ic_weight"
+                android:gravity="center"
+                android:onClick="onCursorTypeClicked"
+                android:textOff=""
+                android:textOn=""
+                android:textSize="0sp" />
+
+            <ToggleButton
+                android:id="@+id/start_node_button"
+                android:layout_width="56dp"
+                android:layout_height="50dp"
+                android:layout_weight="1.1"
+                android:drawableTop="@drawable/ic_start_node"
+                android:gravity="center"
+                android:onClick="onCursorTypeClicked"
+                android:textOff=""
+                android:textOn=""
+                android:textSize="0sp" />
+
+            <ToggleButton
+                android:id="@+id/end_node_button"
+                android:layout_width="56dp"
+                android:layout_height="50dp"
+                android:layout_weight="1.1"
+                android:drawableTop="@drawable/ic_end_node"
+                android:gravity="center"
+                android:onClick="onCursorTypeClicked"
+                android:textOff=""
+                android:textOn=""
+                android:textSize="0sp" />
+
+            <ToggleButton
+                android:id="@+id/clear_type_button"
+                android:layout_width="56dp"
+                android:layout_height="50dp"
+                android:layout_weight="1.1"
+                android:drawableTop="@drawable/ic_delete"
+                android:gravity="center"
+                android:onClick="onCursorTypeClicked"
+                android:textOff=""
+                android:textOn=""
+                android:textSize="0sp" />
+
+            <Button
+                android:id="@+id/settings_button"
+                android:layout_width="56dp"
+                android:layout_height="50dp"
+                android:layout_weight="0.5"
+                android:drawableTop="@drawable/ic_settings_gear"
+                android:onClick="onSettingsClicked" />
+
+        </LinearLayout>
+
+</LinearLayout>
