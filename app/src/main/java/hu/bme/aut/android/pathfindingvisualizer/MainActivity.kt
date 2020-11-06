@@ -2,6 +2,7 @@ package hu.bme.aut.android.pathfindingvisualizer
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -12,7 +13,8 @@ import androidx.core.view.doOnLayout
 import androidx.room.Room
 import hu.bme.aut.android.pathfindingvisualizer.sqlite.Cell
 import hu.bme.aut.android.pathfindingvisualizer.sqlite.GridDatabase
-import hu.bme.aut.android.pathfindingvisualizer.view.GridView
+import hu.bme.aut.android.pathfindingvisualizer.view.GridView.Algorithms
+import hu.bme.aut.android.pathfindingvisualizer.view.GridView.CursorType.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlin.concurrent.thread
 
@@ -29,12 +31,25 @@ class MainActivity : AppCompatActivity() {
             "grid-data"
         ).build()
         canvas.mainActivity = this
+//        val preferences = getPreferences(Context.MODE_PRIVATE)
+        val gridSize = 70 //preferences.getInt("grid_size", 55)
+        val algorithm = "DIJKSTRA" //preferences.getString("algorithm", "DIJKSTRA")
+        //TODO: ez egyelőre csak simán visszatér a default értékkel
+        // és semmi köze nincs a shared preferenceshez
+        Log.println(Log.INFO, "pref", "gridsize = $gridSize, algorithm = $algorithm")
+
         canvas.doOnLayout {
             thread {
                 val cells = database.gridDAO().getAllCells()
-                canvas.restoreObjects(cells)
+                canvas.initializeColors(gridSize)
+                canvas.restoreObjects(cells, gridSize)
+                canvas.currentAlgorithmType = when (algorithm) {
+                    "DIJKSTRA" -> Algorithms.DIJKSTRA
+                    "ASTAR" -> Algorithms.ASTAR
+                    "BELLMANFORD" -> Algorithms.BELLMANFORD
+                    else -> error("unknown algorithm type $algorithm")
+                }
             }
-            canvas.initializeColors()
         }
     }
 
@@ -72,11 +87,11 @@ class MainActivity : AppCompatActivity() {
         }
         setOthersUnchecked(view)
         canvas.currentCursorType = when (view) {
-            weight_button -> GridView.WEIGHT_TYPE
-            wall_button -> GridView.WALL_TYPE
-            start_node_button -> GridView.START_TYPE
-            end_node_button -> GridView.END_TYPE
-            clear_type_button -> GridView.CLEAR_TYPE
+            weight_button -> WEIGHT_TYPE
+            wall_button -> WALL_TYPE
+            start_node_button -> START_TYPE
+            end_node_button -> END_TYPE
+            clear_type_button -> CLEAR_TYPE
             else -> error("?")
         }
 

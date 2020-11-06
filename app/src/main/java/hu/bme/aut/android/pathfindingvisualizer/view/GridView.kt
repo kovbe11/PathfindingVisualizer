@@ -24,21 +24,20 @@ import hu.bme.aut.android.pathfindingvisualizer.sqlite.Cell
 import hu.bme.aut.android.pathfindingvisualizer.sqlite.Cell.Type.*
 import hu.bme.aut.android.pathfindingvisualizer.sqlite.Cell.VisitState.*
 import hu.bme.aut.android.pathfindingvisualizer.view.GridView.Algorithms.BELLMANFORD
+import hu.bme.aut.android.pathfindingvisualizer.view.GridView.CursorType.*
 import kotlin.concurrent.thread
 
 
 class GridView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
-    companion object {
-        const val START_TYPE = 1
-        const val END_TYPE = 2
-        const val CLEAR_TYPE = 3
-        const val WEIGHT_TYPE = 4
-        const val WALL_TYPE = 5
-        //TODO ez mi a retkes szarért nem enum amugy
-
-        const val CELL_SIZE = 40
-
+    enum class CursorType {
+        START_TYPE,
+        END_TYPE,
+        CLEAR_TYPE,
+        WEIGHT_TYPE,
+        WALL_TYPE
     }
+
+    private var cellSize: Int = -1
 
     enum class Algorithms {
         ASTAR {
@@ -181,14 +180,15 @@ class GridView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 //        (row + 1) * size + rowOffset
 
         return cells.find {
-            val rect = it.getRect(CELL_SIZE, rowOffset, colOffset)
+            val rect = it.getRect(cellSize, rowOffset, colOffset)
 //            Log.println(Log.INFO, null, "$x, $y, ${rect.left}, ${rect.right}, ${rect.top}, ${rect.bottom}")
             rect.left < x && rect.right > x && rect.top < y && rect.bottom > y
         }
     }
 
 
-    fun initializeColors() {
+    fun initializeColors(gridSize: Int) {
+        cellSize = gridSize
         val nodeColor = ContextCompat.getColor(context, R.color.nodeColor)
         val gridColor = ContextCompat.getColor(context, R.color.gridColor)
         val visitedColor = ContextCompat.getColor(context, R.color.visitedColor)
@@ -196,16 +196,16 @@ class GridView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
         WALL_BITMAP = ContextCompat.getDrawable(context, R.drawable.ic_wall)!!.apply {
             setTint(nodeColor)
-        }.toBitmap(width = CELL_SIZE, height = CELL_SIZE)
+        }.toBitmap(width = cellSize, height = cellSize)
         WEIGHT_BITMAP = ContextCompat.getDrawable(context, R.drawable.ic_weight)!!.apply {
             setTint(nodeColor)
-        }.toBitmap(width = CELL_SIZE, height = CELL_SIZE)
+        }.toBitmap(width = cellSize, height = cellSize)
         START_NODE_BITMAP = ContextCompat.getDrawable(context, R.drawable.ic_start_node)!!.apply {
             setTint(nodeColor)
-        }.toBitmap(width = CELL_SIZE, height = CELL_SIZE)
+        }.toBitmap(width = cellSize, height = cellSize)
         END_NODE_BITMAP = ContextCompat.getDrawable(context, R.drawable.ic_end_node)!!.apply {
             setTint(nodeColor)
-        }.toBitmap(width = CELL_SIZE, height = CELL_SIZE)
+        }.toBitmap(width = cellSize, height = cellSize)
 
         GRID_PAINT.color = gridColor
         VISITED_PAINT.color = visitedColor
@@ -214,36 +214,53 @@ class GridView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
 
     fun restoreObjects(
-        cells: List<Cell>?
+        cells: List<Cell>?,
+        gridSize: Int
     ) {
-        colCount = width / CELL_SIZE
-        rowCount = height / CELL_SIZE
+        cellSize = gridSize
+        colCount = width / cellSize
+        rowCount = height / cellSize
 
-        val choppedWidth = width - colCount * CELL_SIZE
-        val choppedHeight = height - rowCount * CELL_SIZE
+
+        val choppedWidth = width - colCount * cellSize
+        val choppedHeight = height - rowCount * cellSize
+
+        var rowsTemp = 0 //used to check if cell_size changed since last restore
+        var colsTemp = 0 //used to check if cell_size changed since last restore
 
         val rowRange = if (choppedHeight == 0) {
             rowOffset = 0
+            rowsTemp += rowCount + 1
             0..rowCount
         } else {
-            rowOffset = (height - rowCount * CELL_SIZE) / 2
+            rowOffset = (height - rowCount * cellSize) / 2
+            rowsTemp += rowCount
             0 until rowCount
         }
         val colRange = if (choppedWidth == 0) {
             colOffset = 0
+            colsTemp += colCount + 1
             0..colCount
         } else {
-            colOffset = (width - colCount * CELL_SIZE) / 2
+            colOffset = (width - colCount * cellSize) / 2
+            colsTemp += colCount
             0 until colCount
         }
 
         if (cells != null && cells.isNotEmpty()) {
-            this.cells.addAll(cells)
-            startNode = this.cells.find {
-                it.type == START
-            }
-            endNode = this.cells.find {
-                it.type == END
+            this.cells.clear()
+
+            if (cells.size != colsTemp * rowsTemp) {
+                mainActivity.clearCells()
+                calcGrid(rowRange, colRange)
+            } else {
+                this.cells.addAll(cells)
+                startNode = this.cells.find {
+                    it.type == START
+                }
+                endNode = this.cells.find {
+                    it.type == END
+                }
             }
 
         } else {
@@ -265,7 +282,7 @@ class GridView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
 
         cells.forEach {
-            val rect = it.getRect(CELL_SIZE, rowOffset, colOffset)
+            val rect = it.getRect(cellSize, rowOffset, colOffset)
 
             @Suppress("NON_EXHAUSTIVE_WHEN")
             when (it.visitState) {
@@ -287,7 +304,7 @@ class GridView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
                 else -> null
             }
             bitmap?.let { bm ->
-                canvas.drawBitmap(bm, null, it.getRectF(CELL_SIZE, rowOffset, colOffset), null)
+                canvas.drawBitmap(bm, null, it.getRectF(cellSize, rowOffset, colOffset), null)
             }
 
         }
@@ -301,7 +318,6 @@ class GridView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
         if (cell == endNode || cell == startNode) return false
 
-        //TODO: currentCursorType.clicked(cell)
         when (currentCursorType) {
             START_TYPE -> {
                 startNode?.apply {
