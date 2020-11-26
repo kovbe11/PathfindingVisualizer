@@ -5,14 +5,12 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
-import hu.bme.aut.android.pathfindingvisualizer.ConcurrentBuffer
-import hu.bme.aut.android.pathfindingvisualizer.MainActivity
-import hu.bme.aut.android.pathfindingvisualizer.R
-import hu.bme.aut.android.pathfindingvisualizer.SetOnce
+import hu.bme.aut.android.pathfindingvisualizer.*
 import hu.bme.aut.android.pathfindingvisualizer.graphs.MutableWeightedGraph
 import hu.bme.aut.android.pathfindingvisualizer.graphs.Node
 import hu.bme.aut.android.pathfindingvisualizer.graphs.WeightedGraph
@@ -36,8 +34,6 @@ class GridView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
         WEIGHT_TYPE,
         WALL_TYPE
     }
-
-    private var cellSize: Int = -1
 
     enum class Algorithms {
         ASTAR {
@@ -111,10 +107,10 @@ class GridView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
         style = Paint.Style.FILL
     }
 
-    private var WALL_BITMAP by SetOnce<Bitmap>()
-    private var WEIGHT_BITMAP by SetOnce<Bitmap>()
-    private var START_NODE_BITMAP by SetOnce<Bitmap>()
-    private var END_NODE_BITMAP by SetOnce<Bitmap>()
+    private lateinit var WALL_BITMAP: Bitmap
+    private lateinit var WEIGHT_BITMAP: Bitmap
+    private lateinit var START_NODE_BITMAP: Bitmap
+    private lateinit var END_NODE_BITMAP: Bitmap
 
     var mainActivity: MainActivity by SetOnce()
 
@@ -126,29 +122,14 @@ class GridView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
     private var cells: MutableSet<Cell> = mutableSetOf()
 
+    private var cellSize: Int = -1
     private var rowCount: Int = 0
     private var colCount: Int = 0
     private var colOffset: Int = 0
     private var rowOffset: Int = 0
 
-    private val graph: ConcurrentBuffer<MutableWeightedGraph<Cell, Int>> = ConcurrentBuffer()
-
-    private fun ConcurrentBuffer<MutableWeightedGraph<Cell, Int>>.weightRemoved(cell: Cell) {
-        value.weightRemoved(cell)
-    }
-
-    private fun ConcurrentBuffer<MutableWeightedGraph<Cell, Int>>.weightAdded(cell: Cell) {
-        value.weightAdded(cell)
-    }
-
-    private fun ConcurrentBuffer<MutableWeightedGraph<Cell, Int>>.wallRemoved(cell: Cell) {
-        value.wallRemoved(cell)
-    }
-
-    private fun ConcurrentBuffer<MutableWeightedGraph<Cell, Int>>.wallAdded(cell: Cell) {
-        value.wallAdded(cell)
-    }
-
+    private var graph: MutableWeightedGraph<Cell, Int>? by ConcurrentBlockingBuffer()
+    private val algorithmRunner = StartsOnlyOnce()
 
     private fun Cell.updated() {
         thread {
@@ -266,9 +247,9 @@ class GridView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
         } else {
             calcGrid(rowRange, colRange)
         }
-        graph.invalidate()
+        graph = null
         thread {
-            graph.value = gridGraphBuilder(this.cells)
+            graph = gridGraphBuilder(this.cells)
         }
         invalidate()
 
@@ -312,102 +293,116 @@ class GridView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         if (event == null) return false
-//                || event.action != MotionEvent.ACTION_UP
 //        val cell = findCellByXY(event.x, event.y) ?: return false
         val cell = findCellByXY(event.x, event.y) ?: return false
 
         if (cell == endNode || cell == startNode) return false
 
-        when (currentCursorType) {
-            START_TYPE -> {
-                startNode?.apply {
-                    type = NORMAL
-                    this.updated()
-                }
-                @Suppress("NON_EXHAUSTIVE_WHEN")
-                when (cell.type) {
-                    WEIGHT -> graph.weightRemoved(cell)
-                    WALL -> graph.wallRemoved(cell)
-                }
+        graph?.let { graph ->
+            when (currentCursorType) {
+                START_TYPE -> {
+                    startNode?.apply {
+                        type = NORMAL
+                        this.updated()
+                    }
+                    @Suppress("NON_EXHAUSTIVE_WHEN")
+                    when (cell.type) {
+                        WEIGHT -> graph.weightRemoved(cell)
+                        WALL -> graph.wallRemoved(cell)
+                    }
 
-                cell.type = START
-                startNode = cell
-            }
-            END_TYPE -> {
-                endNode?.apply {
-                    type = NORMAL
-                    this.updated()
+                    cell.type = START
+                    startNode = cell
                 }
-                @Suppress("NON_EXHAUSTIVE_WHEN")
-                when (cell.type) {
-                    WEIGHT -> graph.weightRemoved(cell)
-                    WALL -> graph.wallRemoved(cell)
-                }
+                END_TYPE -> {
+                    endNode?.apply {
+                        type = NORMAL
+                        this.updated()
+                    }
+                    @Suppress("NON_EXHAUSTIVE_WHEN")
+                    when (cell.type) {
+                        WEIGHT -> graph.weightRemoved(cell)
+                        WALL -> graph.wallRemoved(cell)
+                    }
 
-                cell.type = END
-                endNode = cell
-            }
-            WEIGHT_TYPE -> {
-                @Suppress("NON_EXHAUSTIVE_WHEN")
-                when (cell.type) {
-                    WEIGHT -> return false
-                    WALL -> graph.wallRemoved(cell)
+                    cell.type = END
+                    endNode = cell
                 }
-                graph.weightAdded(cell)
-                cell.type = WEIGHT
-            }
-            WALL_TYPE -> {
-                @Suppress("NON_EXHAUSTIVE_WHEN")
-                when (cell.type) {
-                    WEIGHT -> graph.weightRemoved(cell)
-                    WALL -> return false
+                WEIGHT_TYPE -> {
+                    @Suppress("NON_EXHAUSTIVE_WHEN")
+                    when (cell.type) {
+                        WEIGHT -> return false
+                        WALL -> graph.wallRemoved(cell)
+                    }
+                    graph.weightAdded(cell)
+                    cell.type = WEIGHT
                 }
-                graph.wallAdded(cell)
-                //cell.type = WALL is done in wallAdded
-            }
-            CLEAR_TYPE -> {
-                @Suppress("NON_EXHAUSTIVE_WHEN")
-                when (cell.type) {
-                    WEIGHT -> graph.weightRemoved(cell)
-                    WALL -> graph.wallRemoved(cell)
+                WALL_TYPE -> {
+                    @Suppress("NON_EXHAUSTIVE_WHEN")
+                    when (cell.type) {
+                        WEIGHT -> graph.weightRemoved(cell)
+                        WALL -> return false
+                    }
+                    graph.wallAdded(cell)
+                    //cell.type = WALL is done in wallAdded
                 }
-                cell.type = NORMAL
+                CLEAR_TYPE -> {
+                    @Suppress("NON_EXHAUSTIVE_WHEN")
+                    when (cell.type) {
+                        WEIGHT -> graph.weightRemoved(cell)
+                        WALL -> graph.wallRemoved(cell)
+                    }
+                    cell.type = NORMAL
+                }
             }
+            cell.updated()
+            invalidate()
+            return true
         }
-        cell.updated()
 
-        invalidate()
-        return true
+        return false
+
     }
 
-    fun showAlgo() {
+
+    fun showAlgorithm() {
 
         startNode?.let { start ->
             endNode?.let { finish ->
-                cells.forEach {
-                    it.visitState = UNVISITED
-                }
-                invalidate()
-                val visitedNodes = mutableListOf<Cell>()
-                val shortestPath =
-                    currentAlgorithmType.execute(graph.value, start.node, finish.node) {
-                        visitedNodes.add(it.value)
+                graph?.let { graph ->
+                    algorithmRunner.runOnOtherThread {
+                        val cells = this.cells
+                        Log.i("algo", "${currentAlgorithmType.name} is running")
+                        cells.forEach {
+                            it.visitState = UNVISITED
+                        }
+                        invalidate()
+                        val visitedNodes = mutableListOf<Cell>()
+                        val shortestPath =
+                            currentAlgorithmType.execute(graph, start.node, finish.node) {
+                                visitedNodes.add(it.value)
+                            }
+
+                        visitedNodes.forEach {
+                            it.visitState = VISITED
+                            invalidate()
+                            Thread.sleep(40)
+                        }
+                        shortestPath?.let { path ->
+                            path.nodes.forEach {
+                                visitedNodes.remove(it.value)
+                                it.value.visitState = USED
+                            }
+                        }
+                        invalidate()
+                        cells.forEach {
+                            it.updated()
+                        }
                     }
-                shortestPath?.let { path ->
-                    path.nodes.forEach {
-                        visitedNodes.remove(it.value)
-                        it.value.visitState = USED
-                    }
                 }
-                visitedNodes.forEach {
-                    it.visitState = VISITED
-                }
-                cells.forEach {
-                    it.updated()
-                }
-                invalidate()
             }
         }
+
     }
 
 }

@@ -1,6 +1,7 @@
 package hu.bme.aut.android.pathfindingvisualizer
 
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.concurrent.thread
 import kotlin.reflect.KProperty
 
 class SetOnce<T> {
@@ -11,47 +12,43 @@ class SetOnce<T> {
     }
 
     operator fun setValue(thisRef: Any?, prop: KProperty<*>, value: T) {
+        if (this.value == value) return
         if (this.value == null) this.value = value else error("The value was already set!")
     }
 }
 
-class ConcurrentBuffer<T>(t: T? = null) {
-
+class ConcurrentBlockingBuffer<T>(t: T? = null) {
+    private var _value: T? = t
     private val lock = Object()
-    private var _value: T? = null
-    private val invalid: AtomicBoolean = AtomicBoolean(true)
 
-    init {
-        if (t != null) {
-            _value = t
-            invalid.set(false)
-        }
-    }
-
-    private fun getVal(): T {
-        synchronized(lock) {
-            while (invalid.get()) {
+    //blocks thread until value is set
+    operator fun getValue(thisRef: Any?, prop: KProperty<*>): T {
+        return synchronized(lock) {
+            while (_value == null) {
                 lock.wait()
             }
+            _value ?: error("value was set to null again after being set")
         }
-        return _value!!
     }
 
-    private fun setVal(t: T) {
+    operator fun setValue(thisRef: Any?, prop: KProperty<*>, value: T?) {
         synchronized(lock) {
-            invalid.set(false)
-            _value = t
+            _value = value
             lock.notifyAll()
         }
     }
+}
 
-    var value: T
-        get() = getVal()
-        set(value) = setVal(value)
+class StartsOnlyOnce {
 
-    fun invalidate() {
-        synchronized(lock) {
-            invalid.set(true)
+    private val locked = AtomicBoolean(false)
+
+    fun runOnOtherThread(block: () -> Unit) {
+        if (locked.compareAndSet(false, true)) {
+            thread {
+                block()
+                locked.set(false)
+            }
         }
     }
 

@@ -1,6 +1,5 @@
 package hu.bme.aut.android.pathfindingvisualizer.graphs.algorithms
 
-import android.util.Log
 import hu.bme.aut.android.pathfindingvisualizer.graphs.Node
 import hu.bme.aut.android.pathfindingvisualizer.graphs.WeightedEdge
 import hu.bme.aut.android.pathfindingvisualizer.graphs.WeightedGraph
@@ -22,7 +21,6 @@ inline fun <T, N : Number> aStar(
     onNodeVisited: (Node<T>) -> Unit = {}
 ): Map<Node<T>, WeightedEdge<T, N>> {
     check(graph.adjacencyList.none { it.value.any { edge -> numberAdapter.toDouble(edge.weight) < 0 } })
-    Log.println(Log.INFO, "algo", "${graph[startNode]}\n $endNode, ${graph[endNode!!]} ")
     check(graph[startNode] != null && (endNode == null || graph[endNode] != null))
 
     val distances: MutableMap<Node<T>, N> = HashMap()

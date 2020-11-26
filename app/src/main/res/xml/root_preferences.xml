@@ -4,10 +4,10 @@
     <PreferenceCategory app:title="@string/grid_settings_title">
 
         <SeekBarPreference
-            android:max="70"
-            app:defaultValue="55"
+            android:max="60"
+            app:defaultValue="45"
             app:key="grid_size"
-            app:min="40"
+            app:min="30"
             app:seekBarIncrement="1"
             app:title="@string/grid_size_title"
             app:useSimpleSummaryProvider="true" />

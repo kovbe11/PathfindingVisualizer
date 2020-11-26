@@ -2,7 +2,6 @@ package hu.bme.aut.android.pathfindingvisualizer
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -10,6 +9,7 @@ import android.widget.ToggleButton
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.doOnLayout
+import androidx.preference.PreferenceManager
 import androidx.room.Room
 import hu.bme.aut.android.pathfindingvisualizer.sqlite.Cell
 import hu.bme.aut.android.pathfindingvisualizer.sqlite.GridDatabase
@@ -31,12 +31,12 @@ class MainActivity : AppCompatActivity() {
             "grid-data"
         ).build()
         canvas.mainActivity = this
-//        val preferences = getPreferences(Context.MODE_PRIVATE)
-        val gridSize = 70 //preferences.getInt("grid_size", 55)
-        val algorithm = "DIJKSTRA" //preferences.getString("algorithm", "DIJKSTRA")
-        //TODO: ez egyelőre csak simán visszatér a default értékkel
-        // és semmi köze nincs a shared preferenceshez
-        Log.println(Log.INFO, "pref", "gridsize = $gridSize, algorithm = $algorithm")
+    }
+
+    override fun onResume() {
+        val preferences = PreferenceManager.getDefaultSharedPreferences(this)
+        val gridSize = preferences.getInt("grid_size", 45)
+        val algorithm = preferences.getString("algorithm", "DIJKSTRA")
 
         canvas.doOnLayout {
             thread {
@@ -51,6 +51,8 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
+        super.onResume()
     }
 
     override fun onBackPressed() {
@@ -113,7 +115,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onSettingsClicked(view: View) {
-        canvas.showAlgo()
+        canvas.showAlgorithm()
     }
 
     fun insertCell(cell: Cell) {
